@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<style>
+    .div_hover { background-color: #FFFFFF; }
+
+    .div_hover:hover { background-color: #D3D3D3; }
+</style>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            $("#wikiButton").click(function(e) {
+                $.ajax({
+                    url: "https://en.wikipedia.org/w/api.php",
+                    jsonp: "callback",
+                    dataType: 'jsonp',
+                    data: {
+                        action: "query",
+                        list: "search",
+                        srsearch: $(".searchbox").val(),
+                        srinfo: "suggestion",
+                        srlimit: "10",
+                        format: "json"
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: function displayResults(data) {
+                        $('#wikiResults').empty();
+                        var wikihtml = "";
+                        $.each(data.query.search, function(index, obj) {
+
+                            wikihtml += "<a href='https://en.wikipedia.org/wiki/" + obj.title.replace(" ", "_") + "' target=&quot;_blank&quot;>";
+                            wikihtml += "<div class='div_hover'>";
+                            wikihtml += "<p>";
+                            wikihtml += obj.title;
+                            wikihtml += "</p>";
+                            wikihtml += "<p>"
+                            wikihtml += obj.snippet;
+                            wikihtml += "</p>";
+                            wikihtml += "</div>";
+                            wikihtml += "</a>";
+
+                        });
+                        $("#wikiResults").html(wikihtml);
+                    }
+                });
+
+            });
+
+
+            $("#stackButton").click(function(e) {
+                var value = $("#stackSearch").val().trim().split(' ').join('-');
+                console.log(value);
+                e.preventDefault(); //so it doesnt refresh the whole screen
+                var myurl = 'https://api.stackexchange.com/2.2/search?order=desc&sort=activity&intitle=' + value + '&site=stackoverflow';
+                console.log(myurl);
+                $.ajax({
+                    url: myurl,
+                    dataType: "json",
+                    success: function(parsed_json) {
+                        var itemsArr = parsed_json['items'];
+                        everything = ""
+                        $.each(itemsArr, function(i, item) {
+                            console.log(itemsArr[i]);
+                            everything += "<a href='" + itemsArr[i].link + "'target=&quot;_blank&quot;><div class='div_hover'>";
+                            everything += "<p>"
+                            everything += itemsArr[i].title
+                            everything += "</p>"
+                            everything += "</div></a>"
+                        });
+                        $("#stackResult").html(everything);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header style="background-color: #C0C0C0">
+    <h1 align="center"> THE ULTIMATE SOURCE OF INFORMATION</h1>
+    <p align="center">Combining the source of all knowledge with a programmers paradise.<br>Now with dual search capabilities.</p>
+    </header>
+    <form style="float : left; width:45%;">
+        <img src=newWiki.png style="width: 100%;"> </img>
+        <input id="wikiSearch" class="searchbox" type="text" placeholder="Search Wikipedia">
+        <button id="wikiButton" type="button">Submit</button>
+        <div id="wikiResults"></div>
+    </form>
+    <form style="float : right; width:45%;">
+        <img src=stackoverflow.jpg style="width: 100%;"> </img>
+        <input id="stackSearch" class="searchbox" type="text" placeholder="Search Stackoverflow">
+        <button id="stackButton" type="button">Submit</button>
+        <div id="stackResult"></div>
+    </form>
+</body>
+
+</html>
